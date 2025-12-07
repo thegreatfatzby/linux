@@ -922,7 +922,8 @@ void cpu_detect(struct cpuinfo_x86 *c)
 static void apply_forced_caps(struct cpuinfo_x86 *c)
 {
 	int i;
-
+	pr_info("something to break on");
+ 
 	for (i = 0; i < NCAPINTS + NBUGINTS; i++) {
 		c->x86_capability[i] &= ~cpu_caps_cleared[i];
 		c->x86_capability[i] |= cpu_caps_set[i];

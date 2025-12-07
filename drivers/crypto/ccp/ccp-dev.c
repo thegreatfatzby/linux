@@ -633,6 +633,11 @@ int ccp_dev_init(struct sp_device *sp)
 	ccp->io_regs = sp->io_map + ccp->vdata->offset;
 	if (ccp->vdata->setup)
 		ccp->vdata->setup(ccp);
+	if (ccp ->vdata->perform == NULL || ccp->vdata->perform->init == NULL) {
+		pr_info("Oh dear, about to get a null ptr");
+	} else {
+		pr_info("No shouldnt be null ptr?");
+	}
 
 	ret = ccp->vdata->perform->init(ccp);
 	if (ret) {

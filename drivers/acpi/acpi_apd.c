@@ -45,6 +45,7 @@ struct apd_private_data {
 
 static int acpi_apd_setup(struct apd_private_data *pdata)
 {
+	pr_info("ACPI APD SP setup?");
 	const struct apd_device_desc *dev_desc = pdata->dev_desc;
 	struct clk *clk;
 

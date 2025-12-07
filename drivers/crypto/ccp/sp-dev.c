@@ -253,6 +253,7 @@ unlock:
 
 static int __init sp_mod_init(void)
 {
+	pr_info("Hello from sp_mod_init!!\n");
 #ifdef CONFIG_X86
 	static bool initialized;
 	int ret;
@@ -289,6 +290,7 @@ static int __init sp_mod_init(void)
 #if IS_BUILTIN(CONFIG_KVM_AMD) && IS_ENABLED(CONFIG_KVM_AMD_SEV)
 int __init sev_module_init(void)
 {
+	pr_info("SEV INIT!!!\n");
 	return sp_mod_init();
 }
 #endif

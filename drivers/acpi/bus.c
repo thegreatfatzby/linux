@@ -5,7 +5,7 @@
  *  Copyright (C) 2001, 2002 Paul Diefenbaugh <paul.s.diefenbaugh@intel.com>
  */
 
-#define pr_fmt(fmt) "ACPI: " fmt
+#include "linux/printk.h"
 
 #include <linux/module.h>
 #include <linux/init.h>
@@ -1338,6 +1338,7 @@ static int __init acpi_bus_init(void)
 	int result;
 	acpi_status status;
 
+	pr_info("lets init the acpi!!!");
 	acpi_os_initialize1();
 
 	status = acpi_load_tables();

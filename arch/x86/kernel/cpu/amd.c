@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: GPL-2.0-only
+#include "asm/mem_encrypt.h"
 #include <linux/export.h>
 #include <linux/bitops.h>
 #include <linux/elf.h>
@@ -660,6 +661,11 @@ static void early_init_amd(struct cpuinfo_x86 *c)
 	if (c->x86 == 0x16 && c->x86_model <= 0xf)
 		msr_set_bit(MSR_AMD64_LS_CFG, 15);
 
+	// tmp obvs
+	if (sme_me_mask == 0) {
+		pr_info("Cheating and setting sme_me_mask to 0");
+		sme_me_mask = 1;
+	}
 	early_detect_mem_encrypt(c);
 
 	if (!cpu_has(c, X86_FEATURE_HYPERVISOR) && !cpu_has(c, X86_FEATURE_IBPB_BRTYPE)) {

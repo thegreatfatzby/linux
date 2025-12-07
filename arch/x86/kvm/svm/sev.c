@@ -2948,8 +2948,8 @@ void __init sev_hardware_setup(void)
 	bool sev_es_supported = false;
 	bool sev_supported = false;
 
-	if (!sev_enabled || !npt_enabled || !nrips)
-		goto out;
+	// if (!sev_enabled || !npt_enabled || !nrips)
+	// 	goto out;
 
 	/*
 	 * SEV must obviously be supported in hardware.  Sanity check that the
@@ -2958,10 +2958,10 @@ void __init sev_hardware_setup(void)
 	 * guests are bound to a single ASID, i.e. KVM can't rotate to a new
 	 * ASID to effect a TLB flush.
 	 */
-	if (!boot_cpu_has(X86_FEATURE_SEV) ||
-	    WARN_ON_ONCE(!boot_cpu_has(X86_FEATURE_DECODEASSISTS)) ||
-	    WARN_ON_ONCE(!boot_cpu_has(X86_FEATURE_FLUSHBYASID)))
-		goto out;
+	// if (!boot_cpu_has(X86_FEATURE_SEV) ||
+	//     WARN_ON_ONCE(!boot_cpu_has(X86_FEATURE_DECODEASSISTS)) ||
+	//     WARN_ON_ONCE(!boot_cpu_has(X86_FEATURE_FLUSHBYASID)))
+	// 	goto out;
 
 	/*
 	 * The kernel's initcall infrastructure lacks the ability to express
@@ -3044,8 +3044,9 @@ void __init sev_hardware_setup(void)
 	sev_snp_supported = sev_snp_enabled && cc_platform_has(CC_ATTR_HOST_SEV_SNP);
 
 out:
-	if (sev_enabled) {
+	if (true || sev_enabled) {
 		init_args.probe = true;
+		pr_info("Hiii!!!\n");
 		if (sev_platform_init(&init_args))
 			sev_supported = sev_es_supported = sev_snp_supported = false;
 		else if (sev_snp_supported)

@@ -2373,6 +2373,19 @@ int sev_dev_init(struct psp_device *psp)
 	struct sev_device *sev;
 	int ret = -ENOMEM;
 
+	unsigned int eax, ebx, ecx, edx;
+
+	/* Check for the SME/SEV support leaf */
+	eax = 0x80000000;
+	ecx = 0;
+	native_cpuid(&eax, &ebx, &ecx, &edx);
+	pr_info("for 80000000 Have eax %d ebx %d ecx %d edx %d", eax, ebx, ecx, edx);
+	eax = 0x8000001f;
+	ecx = 0;
+	native_cpuid(&eax, &ebx, &ecx, &edx);
+	pr_info("for 8000001f Have eax %d ebx %d ecx %d edx %d", eax, ebx, ecx, edx);
+
+
 	if (!boot_cpu_has(X86_FEATURE_SEV)) {
 		dev_info_once(dev, "SEV: memory encryption not enabled by BIOS\n");
 		return 0;

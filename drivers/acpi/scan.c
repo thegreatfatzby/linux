@@ -37,7 +37,8 @@ static LIST_HEAD(acpi_dep_list);
 static DEFINE_MUTEX(acpi_dep_list_lock);
 LIST_HEAD(acpi_bus_id_list);
 static DEFINE_MUTEX(acpi_scan_lock);
-static LIST_HEAD(acpi_scan_handlers_list);
+static struct list_head acpi_scan_handlers_list = { &(acpi_scan_handlers_list),
+                         &(acpi_scan_handlers_list) };
 DEFINE_MUTEX(acpi_device_lock);
 LIST_HEAD(acpi_wakeup_device_list);
 static DEFINE_MUTEX(acpi_hp_context_lock);
