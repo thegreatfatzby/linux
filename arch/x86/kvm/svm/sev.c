@@ -2951,6 +2951,12 @@ void __init sev_hardware_setup(void)
 	// if (!sev_enabled || !npt_enabled || !nrips)
 	// 	goto out;
 
+	volatile bool sev = boot_cpu_has(X86_FEATURE_SEV);
+	volatile bool decode = boot_cpu_has(X86_FEATURE_SEV);
+	volatile bool flush = boot_cpu_has(X86_FEATURE_SEV);
+
+	pr_info("For sev %d decode %d flush %d", sev, decode, flush);
+
 	/*
 	 * SEV must obviously be supported in hardware.  Sanity check that the
 	 * CPU supports decode assists, which is mandatory for SEV guests to
@@ -2958,10 +2964,10 @@ void __init sev_hardware_setup(void)
 	 * guests are bound to a single ASID, i.e. KVM can't rotate to a new
 	 * ASID to effect a TLB flush.
 	 */
-	// if (!boot_cpu_has(X86_FEATURE_SEV) ||
-	//     WARN_ON_ONCE(!boot_cpu_has(X86_FEATURE_DECODEASSISTS)) ||
-	//     WARN_ON_ONCE(!boot_cpu_has(X86_FEATURE_FLUSHBYASID)))
-	// 	goto out;
+	if (!boot_cpu_has(X86_FEATURE_SEV) ||
+	    WARN_ON_ONCE(!boot_cpu_has(X86_FEATURE_DECODEASSISTS)) ||
+	    WARN_ON_ONCE(!boot_cpu_has(X86_FEATURE_FLUSHBYASID)))
+		goto out;
 
 	/*
 	 * The kernel's initcall infrastructure lacks the ability to express

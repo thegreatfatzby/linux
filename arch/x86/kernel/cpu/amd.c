@@ -662,10 +662,10 @@ static void early_init_amd(struct cpuinfo_x86 *c)
 		msr_set_bit(MSR_AMD64_LS_CFG, 15);
 
 	// tmp obvs
-	if (sme_me_mask == 0) {
-		pr_info("Cheating and setting sme_me_mask to 0");
-		sme_me_mask = 1;
-	}
+	// if (sme_me_mask == 0) {
+	// 	pr_info("Cheating and setting sme_me_mask to 0");
+	// 	sme_me_mask = 1;
+	// }
 	early_detect_mem_encrypt(c);
 
 	if (!cpu_has(c, X86_FEATURE_HYPERVISOR) && !cpu_has(c, X86_FEATURE_IBPB_BRTYPE)) {
