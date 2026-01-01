@@ -1357,16 +1357,17 @@ static int _sev_platform_init_locked(struct sev_platform_init_args *args)
 	/* Defer legacy SEV/SEV-ES support if allowed by caller/module. */
 	if (args->probe && !psp_init_on_probe)
 		return 0;
-
+pr_info("%s:%d\n", __FILE__, __LINE__);
 	return __sev_platform_init_locked(&args->error);
 }
 
 int sev_platform_init(struct sev_platform_init_args *args)
 {
 	int rc;
-
+pr_info("%s:%d\n", __FILE__, __LINE__);
 	mutex_lock(&sev_cmd_mutex);
 	rc = _sev_platform_init_locked(args);
+	pr_info("%s:%d\n", __FILE__, __LINE__);
 	mutex_unlock(&sev_cmd_mutex);
 
 	return rc;
