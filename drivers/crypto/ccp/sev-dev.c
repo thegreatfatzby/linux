@@ -1038,8 +1038,18 @@ static int __sev_init_locked(int *error)
 		data.tmr_len = sev_es_tmr_size;
 	}
 
-	return __sev_do_cmd_locked(SEV_CMD_INIT, &data, error);
+pr_info("%s:%d __sev_init_locked with sev data flags %d r1 %d tmr addr %llu tmr len %d\n", __FILE__, __LINE__, data.flags, data.reserved, data.tmr_address, data.tmr_len);
+	int r = __sev_do_cmd_locked(SEV_CMD_INIT, &data, error);
+pr_info("%s:%d __sev_init_locked result = %d, with sev data flags %d r1 %d tmr addr %llu tmr len %d\n", __FILE__, __LINE__, r, data.flags, data.reserved, data.tmr_address, data.tmr_len);
+	return r;
 }
+
+// struct sev_data_init {
+// 	u32 flags;			/* In */
+// 	u32 reserved;			/* In */
+// 	u64 tmr_address;		/* In */
+// 	u32 tmr_len;			/* In */
+// } __packed;
 
 static int __sev_init_ex_locked(int *error)
 {
@@ -1278,6 +1288,31 @@ static int __sev_platform_init_handle_init_ex_path(struct sev_device *sev)
 	return 0;
 }
 
+// struct sev_device {
+// 	struct device *dev;
+// 	struct psp_device *psp;
+
+// 	void __iomem *io_regs;
+
+// 	struct sev_vdata *vdata;
+
+// 	int state;
+// 	unsigned int int_rcvd;
+// 	wait_queue_head_t int_queue;
+// 	struct sev_misc_dev *misc;
+
+// 	u8 api_major;
+// 	u8 api_minor;
+// 	u8 build;
+
+// 	void *cmd_buf;
+// 	void *cmd_buf_backup;
+// 	bool cmd_buf_active;
+// 	bool cmd_buf_backup_active;
+
+// 	bool snp_initialized;
+// };
+
 static int __sev_platform_init_locked(int *error)
 {
 	int rc, psp_ret, dfflush_error;
@@ -1292,14 +1327,17 @@ static int __sev_platform_init_locked(int *error)
 
 	if (sev->state == SEV_STATE_INIT)
 		return 0;
-
+pr_info("%s:%d\n", __FILE__, __LINE__);
 	__sev_platform_init_handle_tmr(sev);
-
+pr_info("%s:%d\n", __FILE__, __LINE__);
 	rc = __sev_platform_init_handle_init_ex_path(sev);
+pr_info("%s:%d __sev_platform_init_handle_init_ex_path result %d\n", __FILE__, __LINE__, rc);
 	if (rc)
 		return rc;
-
+// derka
+pr_info("pre init cmd vals are state %d int recvd %d major %d minor %d build %d snp init %d sev psp sp ord %d", sev->state, sev->int_rcvd, sev->api_major, sev->api_minor, sev->build, sev->snp_initialized, sev->psp->sp->ord);
 	rc = __sev_do_init_locked(&psp_ret);
+pr_info("%s:%d __sev_platform_init_handle_init_ex_path result %d\n", __FILE__, __LINE__, rc);
 	if (rc && psp_ret == SEV_RET_SECURE_DATA_INVALID) {
 		/*
 		 * Initialization command returned an integrity check failure
@@ -1312,7 +1350,7 @@ static int __sev_platform_init_locked(int *error)
 "SEV: retrying INIT command because of SECURE_DATA_INVALID error. Retrying once to reset PSP SEV state.");
 		rc = __sev_do_init_locked(&psp_ret);
 	}
-
+pr_info("%s:%d\n", __FILE__, __LINE__);
 	if (error)
 		*error = psp_ret;
 
