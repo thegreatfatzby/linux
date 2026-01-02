@@ -428,7 +428,7 @@ static int __sev_guest_init(struct kvm *kvm, struct kvm_sev_cmd *argp,
 	sev->es_active = es_active;
 	sev->vmsa_features = data->vmsa_features;
 	sev->ghcb_version = data->ghcb_version;
-
+pr_info("%s:%d %s()\n", __FILE__, __LINE__, __func__);
 	/*
 	 * Currently KVM supports the full range of mandatory features defined
 	 * by version 2 of the GHCB protocol, so default to that for SEV-ES
@@ -445,13 +445,17 @@ static int __sev_guest_init(struct kvm *kvm, struct kvm_sev_cmd *argp,
 		goto e_no_asid;
 
 	init_args.probe = false;
+	pr_info("%s:%d %s()\n", __FILE__, __LINE__, __func__);
 	ret = sev_platform_init(&init_args);
+	pr_info("%s:%d %s() sev_platform_init got %d\n", __FILE__, __LINE__, __func__, ret);
 	if (ret)
 		goto e_free;
 
 	/* This needs to happen after SEV/SNP firmware initialization. */
 	if (vm_type == KVM_X86_SNP_VM) {
+		pr_info("%s:%d %s()\n", __FILE__, __LINE__, __func__);
 		ret = snp_guest_req_init(kvm);
+		pr_info("%s:%d %s()snp guest init %d\n", __FILE__, __LINE__, __func__, ret);
 		if (ret)
 			goto e_free;
 	}
@@ -513,7 +517,7 @@ static int sev_guest_init2(struct kvm *kvm, struct kvm_sev_cmd *argp)
 
 	if (copy_from_user(&data, u64_to_user_ptr(argp->data), sizeof(data)))
 		return -EFAULT;
-
+pr_info("%s:%d %s()\n", __FILE__, __LINE__, __func__);
 	return __sev_guest_init(kvm, argp, &data, kvm->arch.vm_type);
 }
 
