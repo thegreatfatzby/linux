@@ -113,6 +113,7 @@ static inline void wrpkru(u32 pkru)
  */
 static __always_inline void wbinvd(void)
 {
+	// pr_info("wbinvd???\n");
 	asm volatile("wbinvd" : : : "memory");
 }
 

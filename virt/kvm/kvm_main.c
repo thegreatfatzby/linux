@@ -1108,14 +1108,15 @@ static struct kvm *kvm_create_vm(unsigned long type, const char *fdname)
 	struct kvm *kvm = kvm_arch_alloc_vm();
 	struct kvm_memslots *slots;
 	int r, i, j;
-
+pr_info("%s:%d %d\n", __FILE__, __LINE__, !kvm ? 0 : 1);
 	if (!kvm)
 		return ERR_PTR(-ENOMEM);
-
+pr_info("%s:%d\n", __FILE__, __LINE__);
 	KVM_MMU_LOCK_INIT(kvm);
 	mmgrab(current->mm);
 	kvm->mm = current->mm;
 	kvm_eventfd_init(kvm);
+pr_info("%s:%d\n", __FILE__, __LINE__);
 	mutex_init(&kvm->lock);
 	mutex_init(&kvm->irq_lock);
 	mutex_init(&kvm->slots_lock);
@@ -1155,7 +1156,7 @@ static struct kvm *kvm_create_vm(unsigned long type, const char *fdname)
 		goto out_err_no_irq_routing;
 
 	refcount_set(&kvm->users_count, 1);
-
+pr_info("%s:%d\n", __FILE__, __LINE__);
 	for (i = 0; i < kvm_arch_nr_memslot_as_ids(kvm); i++) {
 		for (j = 0; j < 2; j++) {
 			slots = &kvm->__memslots[i][j];
@@ -5470,11 +5471,11 @@ static int kvm_dev_ioctl_create_vm(unsigned long type)
 	int r, fd;
 	struct kvm *kvm;
 	struct file *file;
-
+pr_info("%s:%d\n", __FILE__, __LINE__);
 	fd = get_unused_fd_flags(O_CLOEXEC);
 	if (fd < 0)
 		return fd;
-
+pr_info("%s:%d\n", __FILE__, __LINE__);
 	snprintf(fdname, sizeof(fdname), "%d", fd);
 
 	kvm = kvm_create_vm(type, fdname);
@@ -5519,6 +5520,7 @@ static long kvm_dev_ioctl(struct file *filp,
 		r = KVM_API_VERSION;
 		break;
 	case KVM_CREATE_VM:
+		pr_info("%s:%d\n", __FILE__, __LINE__);
 		r = kvm_dev_ioctl_create_vm(arg);
 		break;
 	case KVM_CHECK_EXTENSION:

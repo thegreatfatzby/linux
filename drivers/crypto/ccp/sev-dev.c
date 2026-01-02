@@ -299,7 +299,7 @@ static int sev_read_init_ex_file(void)
 			NV_LENGTH, nread);
 	}
 
-	dev_dbg(sev->dev, "SEV: read %ld bytes from NV file\n", nread);
+	pr_info("SEV: read %ld bytes from NV file\n", nread);
 	filp_close(fp, NULL);
 
 	return 0;
@@ -338,7 +338,7 @@ static int sev_write_init_ex_file(void)
 		return -EIO;
 	}
 
-	dev_dbg(sev->dev, "SEV: write successful to NV file\n");
+	pr_info("SEV: write successful to NV file\n");
 
 	return 0;
 }
@@ -852,22 +852,23 @@ static int __sev_do_cmd_locked(int cmd, void *data, int *psp_ret)
 
 	if (!psp || !psp->sev_data)
 		return -ENODEV;
-
+pr_info("%s:%d __sev_do_cmd_locked command %d\n", __FILE__, __LINE__, cmd);
 	if (psp_dead)
 		return -EBUSY;
 
 	sev = psp->sev_data;
-
+pr_info("%s:%d __sev_do_cmd_locked command %d\n", __FILE__, __LINE__, cmd);
 	buf_len = sev_cmd_buffer_len(cmd);
 	if (WARN_ON_ONCE(!data != !buf_len))
 		return -EINVAL;
-
+pr_info("%s:%d __sev_do_cmd_locked command %d\n", __FILE__, __LINE__, cmd);
 	/*
 	 * Copy the incoming data to driver's scratch buffer as __pa() will not
 	 * work for some memory, e.g. vmalloc'd addresses, and @data may not be
 	 * physically contiguous.
 	 */
 	if (data) {
+		pr_info("%s:%d __sev_do_cmd_locked command %d\n", __FILE__, __LINE__, cmd);
 		/*
 		 * Commands are generally issued one at a time and require the
 		 * sev_cmd_mutex, but there could be recursive firmware requests
@@ -895,6 +896,7 @@ static int __sev_do_cmd_locked(int cmd, void *data, int *psp_ret)
 		 * SNP firmware is in the INIT state.
 		 */
 		ret = snp_prep_cmd_buf(cmd, cmd_buf, desc_list);
+		pr_info("%s:%d __sev_do_cmd_locked command %d ret %d\n", __FILE__, __LINE__, cmd, ret);
 		if (ret) {
 			dev_err(sev->dev,
 				"SEV: failed to prepare buffer for legacy command 0x%x. Error: %d\n",
@@ -908,8 +910,8 @@ static int __sev_do_cmd_locked(int cmd, void *data, int *psp_ret)
 	/* Get the physical address of the command buffer */
 	phys_lsb = data ? lower_32_bits(__psp_pa(cmd_buf)) : 0;
 	phys_msb = data ? upper_32_bits(__psp_pa(cmd_buf)) : 0;
-
-	dev_dbg(sev->dev, "sev command id %#x buffer 0x%08x%08x timeout %us\n",
+pr_info("%s:%d __sev_do_cmd_locked command %d\n", __FILE__, __LINE__, cmd);
+	pr_info("sev command id %#x buffer 0x%08x%08x timeout %us\n",
 		cmd, phys_msb, phys_lsb, psp_timeout);
 
 	print_hex_dump_debug("(in):  ", DUMP_PREFIX_OFFSET, 16, 2, data,
@@ -936,6 +938,7 @@ static int __sev_do_cmd_locked(int cmd, void *data, int *psp_ret)
 
 	/* wait for command completion */
 	ret = sev_wait_cmd_ioc(sev, &reg, psp_timeout);
+	pr_info("%s:%d __sev_do_cmd_locked command %d cmd ret %d reg %d \n", __FILE__, __LINE__, cmd, ret, reg);
 	if (ret) {
 		if (psp_ret)
 			*psp_ret = 0;
@@ -952,7 +955,8 @@ static int __sev_do_cmd_locked(int cmd, void *data, int *psp_ret)
 		*psp_ret = FIELD_GET(PSP_CMDRESP_STS, reg);
 
 	if (FIELD_GET(PSP_CMDRESP_STS, reg)) {
-		dev_dbg(sev->dev, "sev command %#x failed (%#010lx)\n",
+		pr_info("%s:%d __sev_do_cmd_locked command %d ret is %d\n", __FILE__, __LINE__, cmd, ret);
+		pr_info("sev command %#x failed (%#010lx)\n",
 			cmd, FIELD_GET(PSP_CMDRESP_STS, reg));
 
 		/*
@@ -963,15 +967,15 @@ static int __sev_do_cmd_locked(int cmd, void *data, int *psp_ret)
 		cmdbuff_hi = ioread32(sev->io_regs + sev->vdata->cmdbuff_addr_hi_reg);
 		cmdbuff_lo = ioread32(sev->io_regs + sev->vdata->cmdbuff_addr_lo_reg);
 		if (cmdbuff_hi != phys_msb || cmdbuff_lo != phys_lsb) {
-			dev_dbg(sev->dev, "Additional error information reported in cmdbuff:");
-			dev_dbg(sev->dev, "  cmdbuff hi: %#010x\n", cmdbuff_hi);
-			dev_dbg(sev->dev, "  cmdbuff lo: %#010x\n", cmdbuff_lo);
+			pr_info("Additional error information reported in cmdbuff:");
+			pr_info("  cmdbuff hi: %#010x\n", cmdbuff_hi);
+			pr_info("  cmdbuff lo: %#010x\n", cmdbuff_lo);
 		}
 		ret = -EIO;
 	} else {
 		ret = sev_write_init_ex_file_if_required(cmd);
 	}
-
+pr_info("%s:%d __sev_do_cmd_locked command %d ret is %d\n", __FILE__, __LINE__, cmd, ret);
 	/*
 	 * Copy potential output from the PSP back to data.  Do this even on
 	 * failure in case the caller wants to glean something from the error.
@@ -999,7 +1003,7 @@ static int __sev_do_cmd_locked(int cmd, void *data, int *psp_ret)
 		if (snp_unmap_cmd_buf_desc_list(desc_list))
 			return -EFAULT;
 	}
-
+pr_info("%s:%d __sev_do_cmd_locked command %d with ret %d\n", __FILE__, __LINE__, cmd, ret);
 	print_hex_dump_debug("(out): ", DUMP_PREFIX_OFFSET, 16, 2, data,
 			     buf_len, false);
 
@@ -1110,21 +1114,21 @@ static int __sev_snp_init_locked(int *error)
 	struct sev_device *sev;
 	void *arg = &data;
 	int cmd, rc = 0;
-
+pr_info("%s:%d\n", __FILE__, __LINE__);
 	if (!cc_platform_has(CC_ATTR_HOST_SEV_SNP))
 		return -ENODEV;
 
 	sev = psp->sev_data;
-
+pr_info("%s:%d\n", __FILE__, __LINE__);
 	if (sev->snp_initialized)
 		return 0;
 
 	if (!sev_version_greater_or_equal(SNP_MIN_API_MAJOR, SNP_MIN_API_MINOR)) {
-		dev_dbg(sev->dev, "SEV-SNP support requires firmware version >= %d:%d\n",
+		pr_info("SEV-SNP support requires firmware version >= %d:%d\n",
 			SNP_MIN_API_MAJOR, SNP_MIN_API_MINOR);
 		return -EOPNOTSUPP;
 	}
-
+pr_info("%s:%d\n", __FILE__, __LINE__);
 	/* SNP_INIT requires MSR_VM_HSAVE_PA to be cleared on all CPUs. */
 	on_each_cpu(snp_set_hsave_pa, NULL, 1);
 
@@ -1172,7 +1176,7 @@ static int __sev_snp_init_locked(int *error)
 		cmd = SEV_CMD_SNP_INIT;
 		arg = NULL;
 	}
-
+pr_info("%s:%d\n", __FILE__, __LINE__);
 	/*
 	 * The following sequence must be issued before launching the first SNP
 	 * guest to ensure all dirty cache lines are flushed, including from
@@ -1184,7 +1188,7 @@ static int __sev_snp_init_locked(int *error)
 	 * - SEV_CMD_SNP_DF_FLUSH firmware command
 	 */
 	wbinvd_on_all_cpus();
-
+pr_info("%s:%d\n", __FILE__, __LINE__);
 	rc = __sev_do_cmd_locked(cmd, arg, error);
 	if (rc) {
 		dev_err(sev->dev, "SEV-SNP: %s failed rc %d, error %#x\n",
@@ -1192,7 +1196,7 @@ static int __sev_snp_init_locked(int *error)
 			rc, *error);
 		return rc;
 	}
-
+pr_info("%s:%d\n", __FILE__, __LINE__);
 	/* Prepare for first SNP guest launch after INIT. */
 	wbinvd_on_all_cpus();
 	rc = __sev_do_cmd_locked(SEV_CMD_SNP_DF_FLUSH, NULL, error);
@@ -1203,9 +1207,9 @@ static int __sev_snp_init_locked(int *error)
 	}
 
 	sev->snp_initialized = true;
-	dev_dbg(sev->dev, "SEV-SNP firmware initialized\n");
+	pr_info("SEV-SNP firmware initialized\n");
 
-	dev_info(sev->dev, "SEV-SNP API:%d.%d build:%d\n", sev->api_major,
+	pr_info("SEV-SNP API:%d.%d build:%d\n", sev->api_major,
 		 sev->api_minor, sev->build);
 
 	atomic_notifier_chain_register(&panic_notifier_list,
@@ -1329,9 +1333,9 @@ static int __sev_platform_init_locked(int *error)
 		return rc;
 	}
 
-	dev_dbg(sev->dev, "SEV firmware initialized\n");
+	pr_info("SEV firmware initialized\n");
 
-	dev_info(sev->dev, "SEV API:%d.%d build:%d\n", sev->api_major,
+	pr_info("SEV API:%d.%d build:%d\n", sev->api_major,
 		 sev->api_minor, sev->build);
 
 	return 0;
@@ -1346,11 +1350,12 @@ static int _sev_platform_init_locked(struct sev_platform_init_args *args)
 		return -ENODEV;
 
 	sev = psp_master->sev_data;
-
+pr_info("%s:%d\n", __FILE__, __LINE__);
 	if (sev->state == SEV_STATE_INIT)
 		return 0;
 
 	rc = __sev_snp_init_locked(&args->error);
+	pr_info("%s:%d rc from __sev_snp_init_locked is %d\n", __FILE__, __LINE__, rc);
 	if (rc && rc != -ENODEV)
 		return rc;
 
@@ -1367,6 +1372,7 @@ int sev_platform_init(struct sev_platform_init_args *args)
 pr_info("%s:%d\n", __FILE__, __LINE__);
 	mutex_lock(&sev_cmd_mutex);
 	rc = _sev_platform_init_locked(args);
+	pr_info("%s:%d rc from _sev_platform_init_locked is %d", __FILE__, __LINE__, rc);
 	pr_info("%s:%d\n", __FILE__, __LINE__);
 	mutex_unlock(&sev_cmd_mutex);
 
@@ -1396,7 +1402,7 @@ static int __sev_platform_shutdown_locked(int *error)
 	}
 
 	sev->state = SEV_STATE_UNINIT;
-	dev_dbg(sev->dev, "SEV firmware shutdown\n");
+	pr_info("SEV firmware shutdown\n");
 
 	return ret;
 }
@@ -1660,12 +1666,12 @@ static int sev_update_firmware(struct device *dev)
 	u64 data_size;
 
 	if (!sev_version_greater_or_equal(0, 15)) {
-		dev_dbg(dev, "DOWNLOAD_FIRMWARE not supported\n");
+		dev_info(dev, "DOWNLOAD_FIRMWARE not supported\n");
 		return -1;
 	}
 
 	if (sev_get_firmware(dev, &firmware) == -ENOENT) {
-		dev_dbg(dev, "No SEV firmware file present\n");
+		dev_info(dev, "No SEV firmware file present\n");
 		return -1;
 	}
 
@@ -1705,7 +1711,7 @@ static int sev_update_firmware(struct device *dev)
 		ret = sev_do_cmd(SEV_CMD_DOWNLOAD_FIRMWARE, data, &error);
 
 	if (ret)
-		dev_dbg(dev, "Failed to update SEV firmware: %#x\n", error);
+		dev_info(dev, "Failed to update SEV firmware: %#x\n", error);
 
 	__free_pages(p, order);
 
@@ -1786,7 +1792,7 @@ static int __sev_snp_shutdown_locked(int *error, bool panic)
 	}
 
 	sev->snp_initialized = false;
-	dev_dbg(sev->dev, "SEV-SNP firmware shutdown\n");
+	pr_info("SEV-SNP firmware shutdown\n");
 
 	/*
 	 * __sev_snp_shutdown_locked() deadlocks when it tries to unregister
@@ -2363,7 +2369,7 @@ static int sev_misc_init(struct sev_device *sev)
 
 	init_waitqueue_head(&sev->int_queue);
 	sev->misc = misc_dev;
-	dev_dbg(dev, "registered SEV device\n");
+	dev_info(dev, "registered SEV device\n");
 
 	return 0;
 }
@@ -2562,7 +2568,7 @@ void sev_pci_init(void)
 
 	if (api_major != sev->api_major || api_minor != sev->api_minor ||
 	    build != sev->build)
-		dev_info(sev->dev, "SEV firmware updated from %d.%d.%d to %d.%d.%d\n",
+		pr_info("SEV firmware updated from %d.%d.%d to %d.%d.%d\n",
 			 api_major, api_minor, build,
 			 sev->api_major, sev->api_minor, sev->build);
 

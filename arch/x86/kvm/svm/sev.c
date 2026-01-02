@@ -3052,7 +3052,7 @@ void __init sev_hardware_setup(void)
 out:
 	if (true || sev_enabled) {
 		init_args.probe = true;
-		pr_info("Hiii!!!\n");
+		pr_info("Hiii fwends!!!\n");
 		if (sev_platform_init(&init_args))
 			sev_supported = sev_es_supported = sev_snp_supported = false;
 		else if (sev_snp_supported)
